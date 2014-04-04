@@ -98,7 +98,7 @@
                 ]
         },
         {
-            "element_id" : "20",
+            "element_id" : "11",
             "element_name" : "csm:slider",
             "attributes" :
                 [
@@ -125,12 +125,12 @@
                     {
                         "attribute_id" : "03",
                         "attribute_name" : "status",
-                        "attribute_value" : "on,off,pause,nfk"
+                        "attribute_value" : "on, off, pause, nfk"
                     }
                 ]
         },
         {
-            "element_id" : "21",
+            "element_id" : "12",
             "element_name" : "csm:video",
             "child_elements" :
                 [
@@ -163,12 +163,12 @@
                 ]
         },
         {
-            "element_id" : "22",
+            "element_id" : "13",
             "element_name" : "csm:parents_need_to_know",
             "element_value" : "*"
         },
         {
-            "element_id" : "23",
+            "element_id" : "14",
             "element_name" : "csm:content_grid",
             "child_elements" :
                 [
@@ -185,7 +185,7 @@
                                 },
                                 {
                                     "attribute_id" :  "02",
-                                    "attribute_name" : "name",
+                                    "attribute_name" : "rating",
                                     "attribute_value" : "0,1,2,3,4,5"
                                 }
                             ]
@@ -195,17 +195,17 @@
 
         },
         {
-            "element_id" : "24",
+            "element_id" : "15",
             "element_name" : "csm:description",
             "element_value" : "*"
         },
         {
-            "element_id" : "25",
+            "element_id" : "16",
             "element_name" : "csm:any_good",
             "element_value" : "*"
         },
         {
-            "element_id" : "26",
+            "element_id" : "17",
             "element_name" : "csm:talking_points",
             "child_elements" :
                 [
@@ -218,7 +218,7 @@
 
         },
         {
-            "element_id" : "27",
+            "element_id" : "18",
             "element_name" : "csm:themes",
             "child_elements" :
                 [
@@ -239,7 +239,7 @@
                 ]
         },
         {
-            "element_id" : "28",
+            "element_id" : "19",
             "element_name" : "csm:alternatives",
             "attributes" :
                 [
@@ -292,7 +292,7 @@
 
         },
         {
-            "element_id" : "30",
+            "element_id" : "20",
             "element_name" : "csm:references",
             "child_elements" :
                 [
@@ -312,27 +312,27 @@
                 ]
         },
         {
-            "element_id" : "31",
+            "element_id" : "21",
             "element_name" : "csm:releases",
             "child_elements" :
                 [
                     {
                         "element_id" :  "01",
-                        "element_name" : "csm:release",
+                        "element_name" : "csm:date",
                         "element_value" : "*",
                         "attributes" :
                             [
                                 {
                                     "attribute_id" :  "01",
                                     "attribute_name" : "type",
-                                    "attribute_value" : "theaters,dvd"
+                                    "attribute_value" : "theaters, dvd"
                                 }
                             ]
                     }
                 ]
         },
         {
-            "element_id" : "32",
+            "element_id" : "22",
             "element_name" : "csm:awards",
             "child_elements" :
                 [
@@ -352,7 +352,7 @@
                 ]
         },
         {
-            "element_id" : "33",
+            "element_id" : "23",
             "element_name" : "csm:images",
             "child_elements" :
                 [
@@ -365,7 +365,7 @@
                                 {
                                     "attribute_id" :  "01",
                                     "attribute_name" : "type",
-                                    "attribute_value" : "product,screenshot"
+                                    "attribute_value" : "product, screenshot"
                                 }
                             ]
 
@@ -374,7 +374,7 @@
 
         },
         {
-            "element_id" : "34",
+            "element_id" : "24",
             "element_name" : "csm:genre",
             "element_value" : "*",
             "attributes" :
@@ -387,7 +387,7 @@
                 ]
         },
         {
-            "element_id" : "35",
+            "element_id" : "25",
             "element_name" : "csm:publishers",
             "child_elements" :
                 [
@@ -416,7 +416,7 @@
                 ]
         },
         {
-            "element_id" : "36",
+            "element_id" : "26",
             "element_name" : "csm:cast",
             "child_elements" :
                 [
@@ -437,7 +437,7 @@
                 ]
         },
         {
-            "element_id" : "37",
+            "element_id" : "27",
             "element_name" : "csm:directors",
             "child_elements" :
                 [
@@ -458,7 +458,7 @@
                 ]
         },
         {
-            "element_id" : "38",
+            "element_id" : "28",
             "element_name" : "csm:length",
             "element_value" : "*",
             "attributes" :
@@ -472,7 +472,7 @@
 
         },
         {
-            "element_id" : "39",
+            "element_id" : "29",
             "element_name" : "csm:industry_rating",
             "element_value" : "*",
             "attributes" :
@@ -485,7 +485,7 @@
                     {
                         "attribute_id" :  "02",
                         "attribute_name" : "value",
-                        "attribute_value" : "G,PG,PG-13,R,NR"
+                        "attribute_value" : "G, PG, PG-13, R, NR"
                     }
                 ]
 
