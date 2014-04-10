@@ -8,6 +8,7 @@ $MODULE_DIR = File.expand_path(File.dirname(__FILE__)).gsub(/lib/, '')
 class XmlValidator
 
   def initialize(domain, api_key, channel, limit, specs, input_file, output_folder, log_folder)
+    @log = ''
     @domain = domain
     @api_key = api_key
     @channel = channel
@@ -19,47 +20,69 @@ class XmlValidator
   end
 
 
-  def puts_log_message(message)
+  def save_log
     @log_filename ||= %{#{Time.now.strftime('%Y_%m_%d_%H_%M')}.log}
     File.open("#{@log_folder}/#{@log_filename}", "a") do |f|
-      f.puts message
+      f.puts @log
     end
   end
 
 
   def run_element_verification
 
-    puts "Test in progress..."
-    puts_log_message "Test started at #{Time.now}"
+    @test_start_time = Time.now
+
+    puts "Test started at #{@test_start_time}"
+    puts "Progress: "
+
+    @log += <<-EOR
+Test started at #{@test_start_time}
+    EOR
 
     if @channel == "all"
 
-      puts_log_message "Selected all channels for test"
+      @log += <<-EOR
+Selected all channels for test
+      EOR
 
       @specs.each do |product_name, product_spec|
 
-        puts_log_message "Starting test for channel '#{product_name}'"
+        @log += <<-EOR
+Starting test for channel '#{product_name}'
+        EOR
 
         test_spec = TestSpec.new(product_spec).test_spec
         test_document = xml_body(product_name)
 
-        puts_log_message "XML is loaded!"
-
-        report_writer(run_test(test_document, test_spec))
       end
     else
-      puts_log_message "Selected '#{@channel.chomp}' channel for test"
+
+      @log += <<-EOR
+Selected '#{@channel.chomp}' channel for test
+      EOR
 
       test_spec = TestSpec.new(@specs[@channel.chomp]).test_spec
       test_document = xml_body(@channel.chomp)
-
-      puts_log_message "XML is loaded!"
-
-      report_writer(run_test(test_document, test_spec))
-
     end
-    puts_log_message "Test finished at #{Time.now}"
-    puts "Test successfully completed!"
+
+    @log += <<-EOR
+XML is loaded
+    EOR
+
+    report_writer(run_test(test_document, test_spec))
+
+    @test_end_time = Time.now
+    @test_duration = @test_end_time - @test_start_time
+
+    @log += <<-EOR
+
+Test finished at #{@test_end_time}
+Test duration: #{@test_duration} sec
+    EOR
+
+    save_log
+    puts "\nTest completed at #{@test_end_time}"
+    puts "Test duration: #{@test_duration} sec"
   end
 
 
@@ -72,15 +95,24 @@ class XmlValidator
           uri = "http://api.#{@domain}/api/v2/reviews/browse?api_key=#{@api_key}&channel=#{channel.chomp}&limit=#{@limit}"
         end
 
-        puts_log_message "URL for xml file is: #{uri}"
+        @log += <<-EOR
+URL for xml file is: #{uri}
+        EOR
 
         xml_body = Nokogiri::XML(open(uri))
       else
-        puts_log_message "Filename of xml file is: #{@input_file}"
+
+        @log += <<-EOR
+Filename of xml file is: #{@input_file}
+        EOR
+
         xml_body = Nokogiri::XML(File.open(@input_file))
       end
     rescue Exception => e
-      puts_log_message "URL or filename is incorrect: #{e.message}"
+
+      @log += <<-EOR
+URL or filename is incorrect: #{e.message}
+      EOR
     end
     xml_body
   end
@@ -89,34 +121,30 @@ class XmlValidator
   def test_status_analyzer(test_result)
     result = OpenStruct.new
 
-    if !test_result.test_of_value.nil? && test_result.test_of_value.test_status == "FAIL"
-      result.test_message = test_result.test_of_value.test_message
+    test_statuses = []
+
+    unless test_result.test_of_value.nil?
+      test_statuses << test_result.test_of_value.test_status
     end
 
-    if !test_result.test_of_attributes.nil? && test_result.test_of_attributes.test_status == "FAIL"
-      if result.test_message.nil?
-        result.test_message = test_result.test_of_attributes.test_message
-      else
-        result.test_message = result.test_message + " " + test_result.test_of_attributes.test_message
-      end
+    unless test_result.test_of_attributes.nil?
+      test_statuses << test_result.test_of_attributes.test_status
     end
 
-    if !test_result.test_of_child_elements.nil? && test_result.test_of_child_elements.test_status == "FAIL"
-      if result.test_message.nil?
-        result.test_message = test_result.test_of_child_elements.test_message
-      else
-        result.test_message = result.test_message + " " + "Test of child elements is FAIL"
-      end
+    unless test_result.test_of_child_elements.nil?
+      test_statuses << test_result.test_of_child_elements.test_status
     end
 
-    if result.test_message.nil?
-      result.test_status = "PASS"
-    else
+    if test_statuses.include?("FAIL")
       result.test_status = "FAIL"
+    else
+      result.test_status = "PASS"
     end
 
-    puts_log_message ""
-    puts_log_message "Test summary result: #{result.test_status}"
+    @log += <<-EOR
+
+Test of element summary result: #{result.test_status}
+    EOR
 
     result
   end
@@ -124,103 +152,141 @@ class XmlValidator
 
   def attribute_verification(test_element, expected_attributes)
 
-    test_results = OpenStruct.new
-    test_attributes = []
+    begin
 
-    expected_attributes.each do |expected_attribute|
+      test_attributes = []
 
-      puts_log_message ""
-      puts_log_message "Test of attribute, Attribute id: #{expected_attribute["attribute_id"]}, Attribute name: #{expected_attribute["attribute_name"]}"
+      expected_attributes.each do |expected_attribute|
 
-      test_attribute = OpenStruct.new
-      test_attribute.id = expected_attribute["attribute_id"]
-      test_attribute.name = expected_attribute["attribute_name"]
-      test_attribute.expected_value = expected_attribute["attribute_value"]
-      test_attribute.actual_value = test_element.attribute(expected_attribute["attribute_name"].gsub(":","|")).to_s
+        @log += <<-EOR
 
-      if expected_attribute["attribute_value"] == "*"
+Test of attribute, Attribute id: #{expected_attribute["attribute_id"]}
+Test of attribute, Attribute name: #{expected_attribute["attribute_name"]}
+        EOR
 
-        if test_attribute.actual_value == ""
-          test_attribute.test_status = "FAIL"
-          test_attribute.test_message = %{For attribute '#{expected_attribute["attribute_name"]}' value is empty!}
+        test_attribute = OpenStruct.new
+        test_attribute.id = expected_attribute["attribute_id"]
+        test_attribute.name = expected_attribute["attribute_name"]
+        test_attribute.expected_value = expected_attribute["attribute_value"]
+        test_attribute.actual_value = test_element.attribute(expected_attribute["attribute_name"].gsub(":","|")).to_s
+
+        if expected_attribute["attribute_value"] == "*"
+
+          if test_attribute.actual_value == ""
+            test_attribute.test_status = "FAIL"
+            test_attribute.test_message = %{For attribute '#{expected_attribute["attribute_name"]}' value is empty!}
+          else
+            test_attribute.test_status = "PASS"
+          end
+
+        elsif expected_attribute["attribute_value"].include? ','
+
+          expected_attribute_values = expected_attribute["attribute_value"].gsub(/\s/,'').split(',')
+
+          if expected_attribute_values.include? test_attribute.actual_value.to_s
+            test_attribute.test_status = "PASS"
+          else
+            test_attribute.test_status = "FAIL"
+            test_attribute.test_message = %{For attribute '#{expected_attribute["attribute_name"]}' value is incorrect!}
+          end
+
         else
-          test_attribute.test_status = "PASS"
+
+          if test_attribute.actual_value == expected_attribute["attribute_value"]
+            test_attribute.test_status = "PASS"
+          else
+            test_attribute.test_status = "FAIL"
+            test_attribute.test_message = %{For attribute '#{expected_attribute["attribute_name"]}' value is incorrect!}
+          end
         end
 
-      elsif expected_attribute["attribute_value"].include? ','
+        @log += <<-EOR
+Test of attribute, Actual result: #{test_attribute.actual_value}
+Test of attribute, Expected result: #{test_attribute.expected_value}
+Test of attribute, Test result: #{test_attribute.test_status}
+        EOR
 
-        expected_attribute_values = expected_attribute["attribute_value"].gsub(/\s/,'').split(',')
-
-        if expected_attribute_values.include? test_attribute.actual_value.to_s
-          test_attribute.test_status = "PASS"
-        else
-          test_attribute.test_status = "FAIL"
-          test_attribute.test_message = %{For attribute '#{expected_attribute["attribute_name"]}' value is incorrect!}
+        unless test_attribute.test_message.nil?
+          @log += <<-EOR
+Test of attribute, Test message: #{test_attribute.test_message}
+          EOR
         end
 
-      else
-
-        if test_attribute.actual_value == expected_attribute["attribute_value"]
-          test_attribute.test_status = "PASS"
-        else
-          test_attribute.test_status = "FAIL"
-          test_attribute.test_message = %{For attribute '#{expected_attribute["attribute_name"]}' value is incorrect!}
-        end
-
+        test_attributes << test_attribute
       end
 
-      puts_log_message "Test of attribute, Actual result: #{test_attribute.actual_value}, Expected result: #{test_attribute.expected_value}"
-      puts_log_message "Test of attribute, Test result: #{test_attribute.test_status}"
-      puts_log_message "Test of attribute, Test message: #{test_attribute.test_status}" unless test_attribute.test_message.nil?
+      test_results = OpenStruct.new
+      test_results.attributes = test_attributes
 
-      test_attributes << test_attribute
+      attributes_statuses = test_attributes.map { |attribute| attribute.test_status }
+      attributes_messages = test_attributes.select { |attribute| attribute.test_message }.map { |attribute| attribute.test_message }
 
+
+      if attributes_statuses.include? "FAIL"
+        test_results.test_status = "FAIL"
+        test_results.test_message = attributes_messages.compact.join(", ")
+      else
+        test_results.test_status = "PASS"
+      end
+
+    rescue Exception => e
+
+      @log += <<-EOR
+Unexpected error in attribute validation method, error: #{e.message}
+      EOR
+
+      save_log
     end
 
-    test_results.attributes = test_attributes
-
-    attributes_statuses = test_attributes.map { |attribute| attribute.test_status }
-    attributes_messages = test_attributes.map { |attribute| attribute.test_message }
-
-
-    if attributes_statuses.include? "FAIL"
-      test_results.test_status = "FAIL"
-      test_results.test_message = attributes_messages.compact.join(", ")
-    else
-      test_results.test_status = "PASS"
-    end
     test_results
   end
 
 
   def value_validation(test_element, expected_value)
-    test_of_value = OpenStruct.new
 
-    puts_log_message ""
-    puts_log_message "Value validation, Actual value: #{test_element.text}, Expected value:#{expected_value}"
+    @log += <<-EOR
 
-    if expected_value == "*"
+Value validation, Actual value: #{test_element.text}
+Value validation, Expected value: #{expected_value}
+    EOR
 
-      if test_element.text == ""
-        test_of_value.test_status = "FAIL"
-        test_of_value.test_message = "Element value is empty!"
+    begin
+      test_of_value = OpenStruct.new
+
+      if expected_value == "*"
+        if test_element.text == ""
+          test_of_value.test_status = "FAIL"
+          test_of_value.test_message = "Element value is empty!"
+        else
+          test_of_value.test_status = "PASS"
+        end
       else
-        test_of_value.test_status = "PASS"
+        if test_element.text == expected_value
+          test_of_value.test_status = "PASS"
+        else
+          test_of_value.test_status = "FAIL"
+          test_of_value.test_message = "Element value is incorrect!"
+        end
       end
 
-    else
+      @log += <<-EOR
+Value validation, Test result: #{test_of_value.test_status}
+      EOR
 
-      if test_element.text == expected_value
-        test_of_value.test_status = "PASS"
-      else
-        test_of_value.test_status = "FAIL"
-        test_of_value.test_message = "Element value is incorrect!"
+      unless test_of_value.test_message.nil?
+        @log += <<-EOR
+Value validation, Test message: #{test_of_value.test_message}
+        EOR
       end
 
+    rescue Exception => e
+
+      @log += <<-EOR
+Unexpected error in value validation method, error: #{e.message}
+      EOR
+
+      save_log
     end
-
-    puts_log_message "Value validation, Test result: #{test_of_value.test_status}"
-    puts_log_message "Value validation, Test message: #{test_of_value.test_status}" unless test_of_value.test_message.nil?
 
     test_of_value
   end
@@ -228,10 +294,11 @@ class XmlValidator
 
   def child_elements_validation(test_element, expected_child_elements)
 
-    puts_log_message ""
-    puts_log_message "-"*120
-    puts_log_message "Child element validation:"
+    @log += <<-EOR
 
+Child element validation:
+#{"*"*120}
+    EOR
 
     test_results = OpenStruct.new
     test_results.child_elements = test_of_elements(test_element, expected_child_elements)
@@ -243,9 +310,12 @@ class XmlValidator
       test_results.test_status = "PASS"
     end
 
-    puts_log_message ""
-    puts_log_message "Child element validation, Test result: #{test_results.test_status}"
-    puts_log_message "-"*120
+
+    @log += <<-EOR
+
+Child element validation, Test result: #{test_results.test_status}
+#{"*"*120}
+    EOR
 
     test_results
   end
@@ -257,9 +327,13 @@ class XmlValidator
 
     test_elements.each do |element|
 
-      puts_log_message ""
-      puts_log_message "******** Test element id: #{element["element_id"]}, Test element name: #{element["element_name"]} ********"
+      text_message = " Test element id: #{element["element_id"]}, Test element name: #{element["element_name"]} "
+      boarder = "-"*((120 - text_message.size)/2)
 
+      @log += <<-EOR
+
+#{ boarder + text_message + boarder }
+      EOR
 
       element_test_result = OpenStruct.new
       element_test_result.id = element["element_id"]
@@ -272,7 +346,11 @@ class XmlValidator
         element_test_result.test_status = "FAIL"
         element_test_result.test_message = "Element not exist!"
 
-        puts_log_message "Element not exist"
+        @log += <<-EOR
+Test of element existence, Element not exist
+
+Test of element summary result: #{ element_test_result.test_status }
+        EOR
 
         elements << element_test_result
         next
@@ -306,7 +384,11 @@ class XmlValidator
     all_nodes = test_document.css(test_spec["container"].gsub(":","|"))
 
     if  all_nodes.empty?
-      puts_log_message "Unable to locate container element '#{test_spec["container"]}'"
+
+      @log += <<-EOR
+Unable to locate container element '#{test_spec["container"]}'
+      EOR
+
       raise "Unable to locate container element"
     end
 
@@ -314,9 +396,13 @@ class XmlValidator
       test_node = OpenStruct.new
       test_node.id = (/\d+/.match container.search('id').text).to_s
 
-      puts_log_message "="*120
-      puts_log_message "Test element id is #{test_node.id}"
-      puts_log_message "="*120
+      print "#"
+
+      @log += <<-EOR
+#{"="*120}
+Test element id is #{test_node.id}
+#{"="*120}
+      EOR
 
       test_node.elements = test_of_elements(container, test_spec['elements'])
       test_node
@@ -400,13 +486,16 @@ if (__FILE__ == $0)
   banner_title = File.basename($0, ".*").gsub("_", " ").split(" ").each { |word| word.capitalize! }.join(" ") + " Test"
   default_movie_element_spec = File.join($MODULE_DIR,'etc','movie_element.json')
   default_game_element_spec = File.join($MODULE_DIR,'etc','game_element.json')
+  default_app_element_spec = File.join($MODULE_DIR,'etc','app_element.json')
   default_website_element_spec = File.join($MODULE_DIR,'etc','website_element.json')
   default_tv_element_spec = File.join($MODULE_DIR,'etc','tv_element.json')
-  default_show_element_spec = File.join($MODULE_DIR,'etc','show_element.json')
   default_book_element_spec = File.join($MODULE_DIR,'etc','book_element.json')
   default_music_element_spec = File.join($MODULE_DIR,'etc','music_element.json')
   default_report_directory = File.join($MODULE_DIR,'reports')
   default_log_directory = File.join($MODULE_DIR,'log')
+
+  Dir.mkdir(default_report_directory) unless File.exists?(default_report_directory)
+  Dir.mkdir(default_log_directory) unless File.exists?(default_log_directory)
 
   opts = Trollop::options do
     banner <<-EOB
@@ -427,9 +516,9 @@ if (__FILE__ == $0)
 
     opt :movie_element_spec, "Relative path to the movie element specification file", :type => :string, :default => default_movie_element_spec
     opt :game_element_spec, "Relative path to the game element specification file", :type => :string, :default => default_game_element_spec
+    opt :app_element_spec, "Relative path to the show element specification file", :type => :string, :default => default_app_element_spec
     opt :website_element_spec, "Relative path to the website element specification file ", :type => :string, :default => default_website_element_spec
     opt :tv_element_spec, "Relative path to the tv element specification file", :type => :string, :default => default_tv_element_spec
-    opt :show_element_spec, "Relative path to the show element specification file", :type => :string, :default => default_show_element_spec
     opt :book_element_spec, "Relative path to the book element specification file", :type => :string, :default => default_book_element_spec
     opt :music_element_spec, "Relative path to the music element specification file ", :type => :string, :default => default_music_element_spec
 
@@ -442,9 +531,9 @@ if (__FILE__ == $0)
   #Trollop::die :input_file, "Input xml file (#{opts[:input_file]}) not found" unless (File.exists?(opts[:input_file]))
   Trollop::die :movie_element_spec, "test specification file (#{opts[:movie_element_spec]}) not found" unless (File.exists?(opts[:movie_element_spec]))
   Trollop::die :game_element_spec, "test specification file (#{opts[:game_element_spec]}) not found" unless (File.exists?(opts[:game_element_spec]))
+  Trollop::die :app_element_spec, "test specification file (#{opts[:app_element_spec]}) not found" unless (File.exists?(opts[:app_element_spec]))
   Trollop::die :website_element_spec, "test specification file (#{opts[:website_element_spec]}) not found" unless (File.exists?(opts[:website_element_spec]))
   Trollop::die :tv_element_spec, "test specification file (#{opts[:tv_element_spec]}) not found" unless (File.exists?(opts[:tv_element_spec]))
-  Trollop::die :show_element_spec, "test specification file (#{opts[:show_element_spec]}) not found" unless (File.exists?(opts[:show_element_spec]))
   Trollop::die :book_element_spec, "test specification file (#{opts[:book_element_spec]}) not found" unless (File.exists?(opts[:book_element_spec]))
   Trollop::die :music_element_spec, "test specification file (#{opts[:music_element_spec]}) not found" unless (File.exists?(opts[:music_element_spec]))
 
@@ -452,9 +541,9 @@ if (__FILE__ == $0)
   specs = {
     'movie'   => opts[:movie_element_spec],
     'game'    => opts[:game_element_spec],
+    'app'    => opts[:app_element_spec],
     'website' => opts[:website_element_spec],
     'tv'      => opts[:tv_element_spec],
-    #'show'    => opts[:show_element_spec],
     'book'    => opts[:book_element_spec],
     'music'   => opts[:music_element_spec]
           }
