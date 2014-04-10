@@ -1,0 +1,3 @@
+class XmlValidatorMethodError < StandardError
+
+end
