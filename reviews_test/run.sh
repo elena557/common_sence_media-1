@@ -6,7 +6,6 @@
 # --api_key or -k, "API key for access"
 # --channel or -c, "Channel for test: all, movie, game, app, website, tv, show, book, music"
 # --limit or -l, "Number of product for test-- all or any number"
-# --input_file or -i, "Relative path to the input xml file, instead of using remote server"
 # --movie_element_spec, "Relative path to the movie element specification file"
 # --game_element_spec, "Relative path to the game element specification file"
 # --website_element_spec, "Relative path to the website element specification file"
@@ -17,4 +16,4 @@
 #
 # This command executes the test
 #
- ruby ./lib/xml_element_validation.rb --channel movie -l 200
+ ruby ./lib/xml_element_validation.rb
