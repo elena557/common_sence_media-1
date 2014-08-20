@@ -9,40 +9,54 @@ $MODULE_DIR = File.expand_path(File.dirname(__FILE__)).gsub(/lib/, '')
 
 class XmlValidator
 
-  def initialize(domain, api_key, channel, limit, specs, input_file, output_folder, log_folder)
+  def initialize(domain, api_key, element,channel, limit, input_file, output_folder, log_folder, value_to_check, check_ampersand)
     @log = ''
     @domain = domain
     @api_key = api_key
+    @element = element
     @channel = channel
     @limit = limit
-    @specs = specs
     @input_file = input_file
     @output_folder = output_folder
     @log_folder = log_folder
+    @value_to_check = value_to_check
+    @check_ampersand = check_ampersand
   end
 
 
   def save_log_message(message)
-    @log_filename ||= %{#{@test_start_time.strftime('%Y_%m_%d_%H_%M')}_#{@channel}.log}
-    File.open("#{@log_folder}/#{@log_filename}", "a") do |f|
+    unless @channel.nil?
+      @log_filename ||= %{#{@test_start_time.strftime('%Y_%m_%d_%H_%M')}_#{@element}_#{@channel}.log}
+    else
+      @log_filename ||= %{#{@test_start_time.strftime('%Y_%m_%d_%H_%M')}_#{@element}.log}
+    end
+
+
+      File.open("#{@log_folder}/#{@log_filename}", "a") do |f|
       f.puts message
     end
   end
 
 
-  def run_test_with_report(product_name, product_spec)
+  def run_test_with_report
     @test_start_time = Time.now
     start_report
 
     puts "Test started at #{@test_start_time}"
     save_log_message "Test started at #{@test_start_time}"
-    puts "\nStarting test for channel '#{product_name}'"
-    save_log_message "Starting test for channel '#{product_name}'"
+    puts "\nStarting test for element '#{@element}'"
+    save_log_message "Starting test for element '#{@element}'"
+
+    unless @channel.nil?
+      puts "\nStarting test for channel '#{@channel}'"
+      save_log_message "Starting test for channel '#{@channel}'"
+    end
 
     puts "Loading XML..."
 
-    test_spec = TestSpec.new(product_spec).test_spec
-    test_document = xml_body(product_name)
+
+    test_spec = TestSpec.new(@input_file.chop).test_spec
+    test_document = xml_body
 
 
     puts "XML is loaded."
@@ -59,25 +73,12 @@ class XmlValidator
   end
 
 
-  def run_element_verification
-    if @channel == "all"
-      @specs.each do |product_name, product_spec|
-        run_test_with_report(product_name, product_spec)
-      end
-    else
-      run_test_with_report(@channel.chomp, @specs[@channel.chomp])
-    end
-  end
-
-
-  def xml_body(channel)
+  def xml_body
     begin
 
-      if @limit == '0'
-        uri = "http://api.#{@domain}/api/v2/reviews/browse?api_key=#{@api_key}&channel=#{channel.chomp}"
-      else
-        uri = "http://api.#{@domain}/api/v2/reviews/browse?api_key=#{@api_key}&channel=#{channel.chomp}&limit=#{@limit}"
-      end
+      uri = "http://api.#{@domain}/api/v2/#{@element.chomp}/browse?api_key=#{@api_key}"
+      uri += "&channel=#{@channel.chomp}" unless @channel.nil?
+      uri += "&limit=#{@limit}" unless @limit.nil?
 
 
       save_log_message "URL for xml file is: #{uri}"
@@ -110,6 +111,15 @@ class XmlValidator
       unless test_result[:test_of_child_elements].nil?
         test_statuses << test_result[:test_of_child_elements][:test_status]
       end
+
+      unless test_result[:check_inside_feed].nil?
+        test_statuses << "FAIL" if test_result[:check_inside_feed] == true
+      end
+
+      unless test_result[:check_ampersand].nil?
+        test_statuses << "FAIL" if test_result[:check_ampersand] == true
+      end
+
 
       if test_statuses.include?("FAIL")
         result[:test_status] = "FAIL"
@@ -229,7 +239,6 @@ class XmlValidator
 
   def value_validation(test_element, expected_value)
     begin
-
       save_log_message ""
       save_log_message "Value validation, Actual value: #{test_element.text}"
       save_log_message "Value validation, Expected value: #{expected_value}"
@@ -282,7 +291,7 @@ class XmlValidator
 
       test_results[:child_elements] = test_of_elements(test_element, expected_child_elements)
 
-      if test_results[:child_elements].any? { |child_element| child_element[:test_status] == "FAIL" }
+      if test_results[:child_elements].any? { |child_element| child_element[:test_status] == "FAIL" || child_element[:check_inside_feed] == true || child_element[:check_ampersand] == true}
         test_results[:test_status] = "FAIL"
       elsif test_results[:child_elements].any? { |child_element| child_element[:test_status] == "BLOCK" }
         test_results[:test_status] = "BLOCK"
@@ -338,6 +347,7 @@ class XmlValidator
           next
         end
 
+
         # Verifying element value
         element_test_result[:test_of_value] = value_validation(test_element, element['element_value']) unless element['element_value'].nil?
 
@@ -346,6 +356,12 @@ class XmlValidator
 
         # Verifying child elements
         element_test_result[:test_of_child_elements] = child_elements_validation(test_element, element['child_elements']) unless element['child_elements'].nil?
+
+        # Verifying symbol or text inside node
+        element_test_result[:check_inside_feed] = check_inside_feed(test_element) unless @value_to_check.nil?
+
+        # Verifying ampersand character inside node
+        element_test_result[:check_ampersand] = check_ampersand(test_element) unless @check_ampersand.nil?
 
 
         analyzed_results = test_status_analyzer(element_test_result)
@@ -359,6 +375,24 @@ class XmlValidator
       save_log_message "Unexpected error in test_of_elements method, error: #{e.message}"
     end
     elements
+  end
+
+
+  def check_inside_feed(test_element)
+    result = test_element.text.include? @value_to_check
+    save_log_message "Symbol or text #{@value_to_check} is included inside feed: #{result}"
+    result
+  end
+
+
+  def check_ampersand(test_element)
+    result = unless (/(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?/).match test_element.text
+      test_element.to_s.include? "&"
+    else
+      false
+    end
+    save_log_message "Ampersand is included inside feed: #{result}"
+    result
   end
 
 
@@ -427,7 +461,12 @@ class XmlValidator
 
 
   def write_report
-    @filename ||= %{#{@test_start_time.strftime('%Y_%m_%d_%H_%M')}_#{@channel}.txt}
+    unless @channel.nil?
+      @filename ||= %{#{@test_start_time.strftime('%Y_%m_%d_%H_%M')}_#{@element}_#{@channel}.txt}
+    else
+      @filename ||= %{#{@test_start_time.strftime('%Y_%m_%d_%H_%M')}_#{@element}.txt}
+    end
+
 
     File.open("#{@output_folder}/#{@filename}", "a") do |file|
       yield file
@@ -454,11 +493,23 @@ class XmlValidator
             f.puts boarder + text_message + boarder
           end
 
+          if element[:check_inside_feed]
+            f.puts("")
+            f.puts("Node include text: #{@value_to_check}!")
+          end
+
+          if element[:check_ampersand]
+            f.puts("")
+            f.puts("Node include ampersand sign (&)!")
+          end
+
+
           if !element[:test_of_value].nil? && (element[:test_of_value][:test_status] == "FAIL" || element[:test_of_value][:test_status] == "BLOCK")
             f.puts("")
             f.puts("Test of element value, Test status: #{element[:test_of_value][:test_status]}")
             f.puts("Test of element value, Test message: #{element[:test_of_value][:test_message]}")
           end
+
 
           if !element[:test_of_attributes].nil? && (element[:test_of_attributes][:test_status] == "FAIL" || element[:test_of_attributes][:test_status] == "BLOCK")
             failed_attribues = element[:test_of_attributes][:attributes].select { |attr| attr[:test_status] ==  "FAIL" }
@@ -486,6 +537,15 @@ class XmlValidator
                 f.puts boarder + text_message + boarder
               end
 
+              if child_element[:check_inside_feed]
+                f.puts("")
+                f.puts("Node include text: #{@value_to_check}!")
+              end
+
+              if child_element[:check_ampersand]
+                f.puts("")
+                f.puts("Node include ampersand sign (&)!")
+              end
 
               if !child_element[:test_of_value].nil? && (child_element[:test_of_value][:test_status] == "FAIL" || child_element[:test_of_value][:test_status] == "BLOCK")
                 f.puts("")
@@ -530,16 +590,10 @@ end
 if (__FILE__ == $0)
 
   banner_title = File.basename($0, ".*").gsub("_", " ").split(" ").each { |word| word.capitalize! }.join(" ") + " Test"
-  default_movie_element_spec = File.join($MODULE_DIR,'etc','movie_element.json')
-  default_game_element_spec = File.join($MODULE_DIR,'etc','game_element.json')
-  default_app_element_spec = File.join($MODULE_DIR,'etc','app_element.json')
-  default_website_element_spec = File.join($MODULE_DIR,'etc','website_element.json')
-  default_tv_element_spec = File.join($MODULE_DIR,'etc','tv_element.json')
-  default_book_element_spec = File.join($MODULE_DIR,'etc','book_element.json')
-  default_music_element_spec = File.join($MODULE_DIR,'etc','music_element.json')
   default_report_directory = File.join($MODULE_DIR,'reports')
   default_log_directory = File.join($MODULE_DIR,'log')
 
+  # If specified directories are not exist, create it
   Dir.mkdir(default_report_directory) unless File.exists?(default_report_directory)
   Dir.mkdir(default_log_directory) unless File.exists?(default_log_directory)
 
@@ -555,43 +609,21 @@ if (__FILE__ == $0)
 
     opt :domain, "Domain name of the website", :short => "-d", :type => :string, :default => "commonsensemedia.org"
     opt :api_key, "API key for access", :short => "-k", :type => :string, :default => "4bc231a2f0486a481425379be3093307"
-    opt :channel, "Channel for test: all, movie, game, app, website, tv, show, book, music", :short => "-c", :type => :string, :default => "all"
-    opt :limit, "Number of product for test: all or any number", :short => "-l", :type => :string, :default => '0'
+    opt :element, "Element name for API request", :short => "-e", :type => :string
+    opt :channel, "Channel parameter for API request", :short => "-c", :type => :string
+    opt :check_inside_node, "Specify symbol or text which you would like to test inside every feed", :type => :string
+    opt :check_ampersand, "Check ampersand inside every feed", :type => :string
+    opt :limit, "Number of product for test: all or any number", :short => "-l", :type => :string
     opt :log_file_folder, "Relative to the log file", :type => :string, :default => default_log_directory
-
-    opt :movie_element_spec, "Relative path to the movie element specification file", :type => :string, :default => default_movie_element_spec
-    opt :game_element_spec, "Relative path to the game element specification file", :type => :string, :default => default_game_element_spec
-    opt :app_element_spec, "Relative path to the show element specification file", :type => :string, :default => default_app_element_spec
-    opt :website_element_spec, "Relative path to the website element specification file ", :type => :string, :default => default_website_element_spec
-    opt :tv_element_spec, "Relative path to the tv element specification file", :type => :string, :default => default_tv_element_spec
-    opt :book_element_spec, "Relative path to the book element specification file", :type => :string, :default => default_book_element_spec
-    opt :music_element_spec, "Relative path to the music element specification file ", :type => :string, :default => default_music_element_spec
-
-    opt :output_report_directory, "The output directory where output report file will be located", :short => "-o", :type => :string, :default => default_report_directory
+    opt :input_spec_file, "Relative path to the element specification file", :short => "-i", :type => :string
+    opt :output_report_directory, "The output directory for report file", :short => "-o", :type => :string, :default => default_report_directory
   end
 
-
   # options validation
-  Trollop::die :domain, "Domain name is missing" unless (opts[:domain])
-  Trollop::die :movie_element_spec, "test specification file (#{opts[:movie_element_spec]}) not found" unless (File.exists?(opts[:movie_element_spec]))
-  Trollop::die :game_element_spec, "test specification file (#{opts[:game_element_spec]}) not found" unless (File.exists?(opts[:game_element_spec]))
-  Trollop::die :app_element_spec, "test specification file (#{opts[:app_element_spec]}) not found" unless (File.exists?(opts[:app_element_spec]))
-  Trollop::die :website_element_spec, "test specification file (#{opts[:website_element_spec]}) not found" unless (File.exists?(opts[:website_element_spec]))
-  Trollop::die :tv_element_spec, "test specification file (#{opts[:tv_element_spec]}) not found" unless (File.exists?(opts[:tv_element_spec]))
-  Trollop::die :book_element_spec, "test specification file (#{opts[:book_element_spec]}) not found" unless (File.exists?(opts[:book_element_spec]))
-  Trollop::die :music_element_spec, "test specification file (#{opts[:music_element_spec]}) not found" unless (File.exists?(opts[:music_element_spec]))
+  Trollop::die :element, "Element name for API request is missing" unless (opts[:element])
+  Trollop::die :input_spec_file, "Relative path to the element specification file is missing" unless (opts[:input_spec_file])
 
 
-  specs = {
-    'movie'   => opts[:movie_element_spec],
-    'game'    => opts[:game_element_spec],
-    'app'    => opts[:app_element_spec],
-    'website' => opts[:website_element_spec],
-    'tv'      => opts[:tv_element_spec],
-    'book'    => opts[:book_element_spec],
-    'music'   => opts[:music_element_spec]
-          }
-
-  xml_test = XmlValidator.new(opts[:domain],opts[:api_key], opts[:channel], opts[:limit], specs, opts[:input_file], opts[:output_report_directory], opts[:log_file_folder])
-  xml_test.run_element_verification
+  xml_test = XmlValidator.new(opts[:domain],opts[:api_key], opts[:element], opts[:channel], opts[:limit], opts[:input_spec_file], opts[:output_report_directory], opts[:log_file_folder], opts[:check_inside_node], opts[:check_ampersand])
+  xml_test.run_test_with_report
 end

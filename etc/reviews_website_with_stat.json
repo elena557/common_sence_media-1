@@ -1,0 +1,384 @@
+{
+    "container": "entry",
+    "elements":
+        [
+            {
+                "element_id" : "01",
+                "element_name" : "id",
+                "element_value" : "*"
+            },
+            {
+                "element_id" : "02",
+                "element_name" : "link",
+                "attributes" :
+                    [
+                        {
+                            "attribute_id" :  "01",
+                            "attribute_name" : "rel",
+                            "attribute_value" : "alternate"
+                        },
+                        {
+                            "attribute_id" :  "02",
+                            "attribute_name" :  "type",
+                            "attribute_value" :  "text/html"
+                        },
+                        {
+                            "attribute_id" : "03",
+                            "attribute_name" : "href",
+                            "attribute_value" : "*"
+                        }
+                    ]
+            },
+            {
+                "element_id" : "03",
+                "element_name" : "category",
+                "attributes" :
+                    [
+                        {
+                            "attribute_id" :  "01",
+                            "attribute_name" : "term",
+                            "attribute_value" : "movie, game, tv,app, music, book, website"
+                        }
+                    ]
+            },
+            {
+                "element_id" : "04",
+                "element_name" : "published",
+                "element_value" : "*"
+            },
+            {
+                "element_id" : "05",
+                "element_name" : "updated",
+                "element_value" : "*"
+            },
+            {
+                "element_id" : "06",
+                "element_name" : "author",
+                "child_elements" :
+                    [
+                        {
+                            "element_id" :  "01",
+                            "element_name" : "name",
+                            "element_value" : "*"
+                        }
+                    ]
+            },
+            {
+                "element_id" : "07",
+                "element_name" : "title",
+                "element_value" : "*"
+            },
+            {
+                "element_id" : "08",
+                "element_name" : "summary",
+                "element_value" : "*"
+            },
+            {
+                "element_id" : "09",
+                "element_name" : "csm:product",
+                "attributes" :
+                    [
+                        {
+                            "attribute_id" :  "01",
+                            "attribute_name" : "xs:type",
+                            "attribute_value" : "movie,game,tv,app,music,book,website"
+                        }
+                    ]
+            },
+            {
+                "element_id" : "10",
+                "element_name" : "csm:review",
+                "attributes" :
+                    [
+                        {
+                            "attribute_id" :  "01",
+                            "attribute_name" : "star_rating",
+                            "attribute_value" : "1, 2, 3, 4, 5"
+                        }
+                    ]
+            },
+            {
+                "element_id" : "11",
+                "element_name" : "csm:slider",
+                "attributes" :
+                    [
+                        {
+                            "attribute_id" :  "01",
+                            "attribute_name" : "not_for_kids",
+                            "attribute_value" : "0,1"
+                        },
+                        {
+                            "attribute_id" :  "02",
+                            "attribute_name" :  "target_age",
+                            "attribute_value" :  "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17"
+                        },
+                        {
+                            "attribute_id" : "03",
+                            "attribute_name" : "off_age",
+                            "attribute_value" : "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17"
+                        },
+                        {
+                            "attribute_id" : "04",
+                            "attribute_name" : "on_age",
+                            "attribute_value" : "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17"
+                        },
+                        {
+                            "attribute_id" : "05",
+                            "attribute_name" : "status",
+                            "attribute_value" : "on, off, pause, nfk"
+                        }
+                    ]
+            },
+            {
+                "element_id" : "12",
+                "element_name" : "csm:video",
+                "child_elements" :
+                    [
+                        {
+                            "element_id" :  "01",
+                            "element_name" : "csm:image",
+                            "element_value" : "*",
+                            "attributes" :
+                                [
+                                    {
+                                        "attribute_id" :  "01",
+                                        "attribute_name" : "type",
+                                        "attribute_value" : "screenshot"
+                                    }
+                                ]
+                        },
+                        {
+                            "element_id" :  "02",
+                            "element_name" : "csm:file",
+                            "element_value" : "*",
+                            "attributes" :
+                                [
+                                    {
+                                        "attribute_id" :  "01",
+                                        "attribute_name" : "type",
+                                        "attribute_value" : "*"
+                                    }
+                                ]
+                        }
+                    ]
+            },
+            {
+                "element_id" : "13",
+                "element_name" : "csm:parents_need_to_know",
+                "element_value" : "*"
+            },
+            {
+                "element_id" : "14",
+                "element_name" : "csm:content_grid",
+                "child_elements" :
+                    [
+                        {
+                            "element_id" :  "01",
+                            "element_name" : "csm:content_grid_item",
+                            "element_value" : "*",
+                            "attributes" :
+                                [
+                                    {
+                                        "attribute_id" :  "01",
+                                        "attribute_name" : "name",
+                                        "attribute_value" : "*"
+                                    },
+                                    {
+                                        "attribute_id" :  "02",
+                                        "attribute_name" : "rating",
+                                        "attribute_value" : "0,1,2,3,4,5"
+                                    }
+                                ]
+
+                        }
+                    ]
+
+            },
+            {
+                "element_id" : "15",
+                "element_name" : "csm:description",
+                "element_value" : "*"
+            },
+            {
+                "element_id" : "16",
+                "element_name" : "csm:any_good",
+                "element_value" : "*"
+            },
+            {
+                "element_id" : "17",
+                "element_name" : "csm:talking_points",
+                "child_elements" :
+                    [
+                        {
+                            "element_id" :  "01",
+                            "element_name" : "csm:talking_point",
+                            "element_value" : "*"
+                        }
+                    ]
+
+            },
+            {
+                "element_id" : "18",
+                "element_name" : "csm:themes",
+                "child_elements" :
+                    [
+                        {
+                            "element_id" :  "01",
+                            "element_name" : "csm:theme",
+                            "element_value" : "*",
+                            "attributes" :
+                                [
+                                    {
+                                        "attribute_id" :  "01",
+                                        "attribute_name" : "id",
+                                        "attribute_value" : "*"
+                                    }
+                                ]
+
+                        }
+                    ]
+            },
+            {
+                "element_id" : "19",
+                "element_name" : "csm:alternatives",
+                "attributes" :
+                    [
+                        {
+                            "attribute_id" :  "01",
+                            "attribute_name" : "title"
+                        }
+                    ],
+                "child_elements" :
+                    [
+                        {
+                            "element_id" :  "01",
+                            "element_name" : "csm:item",
+                            "attributes" :
+                                [
+                                    {
+                                        "attribute_id" :  "01",
+                                        "attribute_name" : "id",
+                                        "attribute_value" : "*"
+                                    }
+                                ],
+                            "child_elements" :
+                                [
+                                    {
+                                        "element_id" :  "01",
+                                        "element_name" : "csm:title",
+                                        "element_value" : "*"
+                                    },
+                                    {
+                                        "element_id" :  "02",
+                                        "element_name" : "csm:url",
+                                        "element_value" : "*"
+                                    },
+                                    {
+                                        "element_id" :  "03",
+                                        "element_name" : "csm:summary",
+                                        "element_value" : "*"
+                                    },
+                                    {
+                                        "element_id" :  "04",
+                                        "element_name" : "csm:slider",
+                                        "element_value" : "*"
+                                    }
+                                ]
+
+
+                        }
+                    ]
+
+            },
+            {
+                "element_id" : "20",
+                "element_name" : "csm:awards",
+                "child_elements" :
+                    [
+                        {
+                            "element_id" :  "01",
+                            "element_name" : "csm:award",
+                            "element_value" : "*",
+                            "attributes" :
+                                [
+                                    {
+                                        "attribute_id" :  "01",
+                                        "attribute_name" : "id",
+                                        "attribute_value" : "*"
+                                    }
+                                ]
+                        }
+                    ]
+            },
+            {
+                "element_id" : "21",
+                "element_name" : "csm:images",
+                "child_elements" :
+                    [
+                        {
+                            "element_id" :  "01",
+                            "element_name" : "csm:image",
+                            "element_value" : "*",
+                            "attributes" :
+                                [
+                                    {
+                                        "attribute_id" :  "01",
+                                        "attribute_name" : "type",
+                                        "attribute_value" : "product, screenshot"
+                                    }
+                                ]
+
+                        }
+                    ]
+
+            },
+            {
+                "element_id" : "24",
+                "element_name" : "csm:genre",
+                "element_value" : "*",
+                "attributes" :
+                    [
+                        {
+                            "attribute_id" :  "01",
+                            "attribute_name" : "id",
+                            "attribute_value" : "*"
+                        }
+                    ]
+            },
+            {
+                "element_id" : "25",
+                "element_name" : "csm:url",
+                "element_value" : "*"
+            },
+            {
+                "element_id" : "26",
+                "element_name" : "csm:stat",
+                "attributes" :
+                    [
+                        {
+                            "attribute_id" :  "01",
+                            "attribute_name" : "name",
+                            "attribute_value" : "csm_rating, recommended_age, stars, user_review_count"
+                        },
+                        {
+                            "attribute_id" :  "02",
+                            "attribute_name" : "group",
+                            "attribute_value" : "adult, all"
+                        },
+                        {
+                            "attribute_id" :  "03",
+                            "attribute_name" : "type",
+                            "attribute_value" : "avg, count"
+                        },
+                        {
+                            "attribute_id" :  "04",
+                            "attribute_name" : "value",
+                            "attribute_value" : "*"
+                        }
+                    ]
+
+            }
+
+
+        ]
+}

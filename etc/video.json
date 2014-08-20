@@ -1,0 +1,132 @@
+{
+    "container": "entry",
+    "elements":
+        [
+            {
+                "element_id" : "01",
+                "element_name" : "id",
+                "element_value" : "*"
+            },
+            {
+                "element_id" : "02",
+                "element_name" : "link",
+                "attributes" :
+                    [
+                        {
+                            "attribute_id" :  "01",
+                            "attribute_name" : "rel",
+                            "attribute_value" : "alternate"
+                        },
+                        {
+                            "attribute_id" :  "02",
+                            "attribute_name" :  "type",
+                            "attribute_value" :  "text/html"
+                        },
+                        {
+                            "attribute_id" : "03",
+                            "attribute_name" : "href",
+                            "attribute_value" : "*"
+                        }
+                    ]
+            },
+            {
+                "element_id" : "03",
+                "element_name" : "category",
+                "attributes" :
+                    [
+                        {
+                            "attribute_id" :  "01",
+                            "attribute_name" : "term",
+                            "attribute_value" : "*"
+                        },
+                        {
+                            "attribute_id" :  "02",
+                            "attribute_name" :  "scheme",
+                            "attribute_value" :  "urn:topic, urn:video_type, urn:channel"
+                        }
+                    ]
+            },
+            {
+                "element_id" : "04",
+                "element_name" : "published",
+                "element_value" : "*"
+            },
+            {
+                "element_id" : "05",
+                "element_name" : "updated",
+                "element_value" : "*"
+            },
+            {
+                "element_id" : "06",
+                "element_name" : "author",
+                "child_elements" :
+                    [
+                        {
+                            "element_id" :  "01",
+                            "element_name" : "name",
+                            "element_value" : "*"
+                        }
+                    ]
+            },
+            {
+                "element_id" : "07",
+                "element_name" : "title",
+                "element_value" : "*"
+            },
+            {
+                "element_id" : "08",
+                "element_name" : "summary",
+                "element_value" : "*"
+            },
+            {
+                "element_id" : "09",
+                "element_name" : "csm:ages",
+                "attributes" :
+                    [
+                        {
+                            "attribute_id" :  "01",
+                            "attribute_name" : "min",
+                            "attribute_value" : "1,2,34,5,6,7,8,9,10,11,12,13,14,15,16,17"
+                        },
+                        {
+                            "attribute_id" :  "02",
+                            "attribute_name" :  "max",
+                            "attribute_value" : "1,2,34,5,6,7,8,9,10,11,12,13,14,15,16,17"
+                        }
+                    ]
+            },
+            {
+                "element_id" : "10",
+                "element_name" : "csm:video",
+                "child_elements" :
+                    [
+                        {
+                            "element_id" :  "01",
+                            "element_name" : "csm:image",
+                            "element_value" : "*",
+                            "attributes" :
+                                [
+                                    {
+                                        "attribute_id" :  "01",
+                                        "attribute_name" : "type",
+                                        "attribute_value" : "screenshot"
+                                    }
+                                ]
+                        },
+                        {
+                            "element_id" :  "02",
+                            "element_name" : "csm:file",
+                            "element_value" : "*",
+                            "attributes" :
+                                [
+                                    {
+                                        "attribute_id" :  "01",
+                                        "attribute_name" : "type",
+                                        "attribute_value" : "*"
+                                    }
+                                ]
+                        }
+                    ]
+            }
+        ]
+}
