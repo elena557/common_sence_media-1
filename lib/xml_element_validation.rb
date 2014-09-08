@@ -159,7 +159,12 @@ class XmlValidator
           test_attribute[:id] = expected_attribute["attribute_id"]
           test_attribute[:name] = expected_attribute["attribute_name"]
           test_attribute[:expected_value] = expected_attribute["attribute_value"]
-          test_attribute[:actual_value] = test_element.attribute(expected_attribute["attribute_name"].gsub(":","|")).to_s
+
+          if test_element.attribute(expected_attribute["attribute_name"]).nil?
+            test_attribute[:actual_value] = nil
+          else
+            test_attribute[:actual_value] = test_element.attribute(expected_attribute["attribute_name"]).value
+          end
 
           if expected_attribute["attribute_value"] == "*"
 
@@ -189,6 +194,12 @@ class XmlValidator
               test_attribute[:test_status] = "FAIL"
               test_attribute[:test_message] = %{For attribute '#{expected_attribute["attribute_name"]}' value is incorrect!}
             end
+          end
+
+
+          if test_element.attribute(expected_attribute["attribute_name"]).nil?
+            test_attribute[:test_message] = %{Attribute '#{expected_attribute["attribute_name"]}' is not exist!}
+            test_attribute[:test_status] = "FAIL"
           end
 
           save_log_message "Test of attribute, Actual result: #{test_attribute[:actual_value]}"

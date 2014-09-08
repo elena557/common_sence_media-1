@@ -245,7 +245,8 @@
                     [
                         {
                             "attribute_id" :  "01",
-                            "attribute_name" : "title"
+                            "attribute_name" : "title",
+                            "attribute_value" : "*"
                             }
                     ],
                 "child_elements" :
